@@ -1,16 +1,29 @@
-import {useCallback, useEffect, useMemo, useState} from 'react';
-import useWebSocket, {ReadyState} from 'react-use-websocket';
-import {Trade} from '../../common/types';
-import {Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis} from 'recharts';
-
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import useWebSocket, { ReadyState } from 'react-use-websocket';
+import { Trade } from '../../common/types';
+import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts';
+import axios from 'axios';
 
 function App() {
     const socketUrl = `ws://localhost:3001`;
     const [messageHistory, setMessageHistory] = useState<Trade[]>([]);
+    const [dates, setDates] = useState<Date[]>([new Date(), new Date()]);
+    const [tradesByDates, setTradesByDates] = useState<TradeDatabase[]>([]);
 
-    const {lastMessage, readyState} = useWebSocket(socketUrl);
+    const { lastMessage, readyState } = useWebSocket(socketUrl);
 
     const MAX_MESSAGE_HISTORY = 150000;
+
+    const getTradesFromApiByDate = async () => {
+        const response = await axios.post('http://localhost:3000/api/trades', {
+            from: dates[0].getTime(),
+            to: dates[1].getTime()
+        });
+
+        const trades = response.data as TradeDatabase[];
+
+        setTradesByDates(trades);
+    }
 
     useEffect(() => {
         if (lastMessage !== null) {
@@ -113,74 +126,96 @@ function App() {
     }, [sortedMessageHistory]);
 
     return (
-        <div className='w-screen flex flex-col items-center justify-center h-screen bg-zinc-900 text-white font-mono'>
-      <span
-          className={`text-3xl ${connectionStatus === 'Open' ? 'text-green-200' : 'text-red-200'}`}
-      >Websocket: {connectionStatus}</span>
-            <div
-                className='flex items-center justify-center'
-            >
-                <span className='text-2xl'>Last Price for BTC/USDT:</span>
-                {lastMessage && (
-                    <div
-                        className={`ml-2 w-fit mx-auto rounded-lg px-4 text-2xl ${isHigher ? 'text-green-200 bg-green-800' : 'text-red-200 bg-red-800'} p-2 ${isSame && '!bg-gray-800 !text-gray-200'}`}
-                    >
-                        <span>{sortedMessageHistory[sortedMessageHistory.length - 1]?.p}</span>
-                    </div>
-                )}
-            </div>
-            <AreaChart
-                {...{
-                    overflow: 'visible'
-                }}
-                width={1200} height={500} data={tradesForChart}
-                margin={{top: 10, right: 30, left: 0, bottom: 0}}
-            >
-                <defs>
-                    <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor="#8884d8" stopOpacity={0}/>
-                    </linearGradient>
-                </defs>
-                <XAxis dataKey="t"
-                       domain={xDomain}
-                       ticks={xTicks}
-                       type="number"
-                       tickFormatter={(unixTime) => new Date(unixTime).toLocaleTimeString()}
-                />
-                <YAxis
-                    domain={yDomain}
-                    ticks={yTicks}
-                    tickFormatter={(value) => value.toFixed(2)}
-                    type='number'
-                />
-                <CartesianGrid strokeDasharray="3 3"/>
-                <Tooltip
-                    content={({payload}) => {
-                        if (payload?.length === 0) {
-                            return null
-                        }
-                        const trade = payload?.[0].payload as Trade
-
-                        return (
-                            <div className='bg-zinc-800 p-4 shadow-md rounded-md'>
-                                <div>Price: {trade.p}</div>
-                                <div>Volume: {trade.v}</div>
-                                <div>Timestamp: {new Date(trade.t).toLocaleString()}</div>
-                            </div>
-                        )
+        <div className='flex flex-col items-center justify-center min-h-screen bg-zinc-900 text-white font-mono p-10 w-[99vw]  overflow-hidden max-w-[99vw] '>
+            <div className="w-full h-full flex items-center flex-col justify-center  overflow-hidden">
+                <span
+                    className={`text-3xl ${connectionStatus === 'Open' ? 'text-green-200' : 'text-red-200'}`}
+                >Websocket: {connectionStatus}</span>
+                <div
+                    className='flex items-center justify-center'
+                >
+                    <span className='text-2xl'>Last Price for BTC/USDT:</span>
+                    {lastMessage && (
+                        <div
+                            className={`ml-2 w-fit mx-auto rounded-lg px-4 text-2xl ${isHigher ? 'text-green-200 bg-green-800' : 'text-red-200 bg-red-800'} p-2 ${isSame && '!bg-gray-800 !text-gray-200'}`}
+                        >
+                            <span>{sortedMessageHistory[sortedMessageHistory.length - 1]?.p}</span>
+                        </div>
+                    )}
+                </div>
+                <AreaChart
+                    {...{
+                        overflow: 'visible'
                     }}
+                    width={1000} height={400} data={tradesForChart}
+                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                >
+                    <defs>
+                        <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
+                            <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
+                        </linearGradient>
+                    </defs>
+                    <XAxis dataKey="t"
+                        domain={xDomain}
+                        ticks={xTicks}
+                        type="number"
+                        tickFormatter={(unixTime) => new Date(unixTime).toLocaleTimeString()}
+                    />
+                    <YAxis
+                        domain={yDomain}
+                        ticks={yTicks}
+                        tickFormatter={(value) => value.toFixed(2)}
+                        type='number'
+                    />
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <Tooltip
+                        content={({ payload }) => {
+                            if (payload?.length === 0) {
+                                return null
+                            }
+                            const trade = payload?.[0].payload as Trade
+                            return (
+                                <div className='bg-zinc-800 p-4 shadow-md rounded-md'>
+                                    <div>Price: {trade.p}</div>
+                                    <div>Volume: {trade.v}</div>
+                                    <div>Timestamp: {new Date(trade.t).toLocaleString()}</div>
+                                </div>
+                            )
+                        }}
+                    />
+                    <Area isAnimationActive={false} type="monotone" dataKey="p" stroke="#8884d8" fillOpacity={1}
+                        strokeWidth={2} fill="url(#colorPrice)" />
+                </AreaChart>
+                <div className='flex items-center justify-center gap-4 w-full'>
+                    <PriceChangeCard title='5m' percentage={priceChangeSince5MinutesAgoPercentage * 100}
+                        isHigher={priceChangeSince5MinutesAgoPercentage > 0} />
+                    <PriceChangeCard title='30m' percentage={priceChangeSince30MinutesAgoPercentage * 100}
+                        isHigher={priceChangeSince30MinutesAgoPercentage > 0} />
+                    <PriceChangeCard title='1h' percentage={priceChangeSince1HourAgoPercentage * 100}
+                        isHigher={priceChangeSince1HourAgoPercentage > 0} />
+                </div>
+                <DateRangeSelector
+                    onDateChange={(from, to) => {
+                        setDates([from, to]);
+                    }}
+                    dates={dates}
                 />
-                <Area isAnimationActive={false} type="monotone" dataKey="p" stroke="#8884d8" fillOpacity={1}
-                      strokeWidth={2} fill="url(#colorPrice)"/>
-            </AreaChart>
-            <div className='flex items-center justify-center gap-4 w-full'>
-                <PriceChangeCard title='5m' percentage={priceChangeSince5MinutesAgoPercentage * 100}
-                                 isHigher={priceChangeSince5MinutesAgoPercentage > 0}/>
-                <PriceChangeCard title='30m' percentage={priceChangeSince30MinutesAgoPercentage * 100}
-                                 isHigher={priceChangeSince30MinutesAgoPercentage > 0}/>
-                <PriceChangeCard title='1h' percentage={priceChangeSince1HourAgoPercentage * 100}
-                                 isHigher={priceChangeSince1HourAgoPercentage > 0}/>
+                <button
+                    onClick={getTradesFromApiByDate}
+                    className='mt-4 p-2 bg-green-800 rounded-lg'
+                >
+                    Get trades from API
+                </button>
+            </div>
+            <div className='flex flex-col items-center justify-center gap-4 bg-zinc-800 p-4 rounded-lg mt-4 w-fit h-full max-w-[99vw]  overflow-hidden'>
+                {tradesByDates.map((trade) => (
+                    <div key={trade.timestamp} className='flex items-center justify-center gap-4 w-full bg-zinc-900 p-4 rounded-lg'>
+                        <span className='bg-zinc-700 rounded-lg p-2'>{trade.price}</span>
+                        <span>{trade.volume}</span>
+                        <span>{new Date(trade.timestamp).toLocaleString()}</span>
+                    </div>
+                ))}
             </div>
         </div>
     );
@@ -188,12 +223,36 @@ function App() {
 
 export default App;
 
-function PriceChangeCard({title, percentage, isHigher}: { title: string, percentage: number, isHigher: boolean }) {
+function PriceChangeCard({ title, percentage, isHigher }: { title: string, percentage: number, isHigher: boolean }) {
     return (
         <div
             className={`flex flex-col items-center justify-center ${isHigher ? 'text-green-200 bg-green-800' : 'text-red-200 bg-red-800'} p-2 rounded-lg`}>
             <span className='text-2xl'>{title}</span>
             <span className='text-2xl'>{percentage.toFixed(4)}%</span>
+        </div>
+    )
+}
+
+function DateRangeSelector({ dates, onDateChange }: { dates: Date[], onDateChange: (from: Date, to: Date) => void }) {
+    return (
+        <div className='flex items-center justify-center gap-4 mt-4'>
+            <input type='date' value={dates[0].toISOString().split('T')[0]} onChange={(e) => {
+                const date = new Date(e.target.value);
+                onDateChange(date, dates[1]);
+            }} />
+            <input type='date' value={dates[1].toISOString().split('T')[0]} onChange={(e) => {
+                const date = new Date(e.target.value);
+                onDateChange(dates[0], date);
+            }} />
+            <button onClick={() => {
+                onDateChange(new Date(), new Date());
+            }}>Today</button>
+            <button onClick={() => {
+                onDateChange(new Date(Date.now() - 1000 * 60 * 60 * 24), new Date());
+            }}>Yesterday</button>
+            <button onClick={() => {
+                onDateChange(new Date(Date.now() - 1000 * 60 * 60 * 24 * 7), new Date());
+            }}>Last 7 days</button>
         </div>
     )
 }

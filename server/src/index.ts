@@ -1,17 +1,46 @@
-import {desc} from 'drizzle-orm';
-import {Trade, TradeResponse} from '../../common/types.ts';
-import {db} from './db/client.ts';
-import {trades} from './db/schema.ts';
-import {Hono} from 'hono';
-import {serveStatic} from 'hono/bun'
+import { and, desc, gte, lt, lte } from 'drizzle-orm';
+import { Trade, TradeResponse } from '../../common/types.ts';
+import { db } from './db/client.ts';
+import { TradeDatabase, trades } from './db/schema.ts';
+import { Hono } from 'hono';
+import { serveStatic } from 'hono/bun'
+import { z } from "zod"
+import { cors } from 'hono/cors';
 
 const wss = new WebSocket(`wss://ws.finnhub.io?token=${process.env.STOCK_API_KEY}`)
 
 const app = new Hono()
 
+app.use(cors())
+
 app.get('*', serveStatic({
     root: '../client/dist',
 }))
+
+const dateFilterSchema = z.object({
+    from: z.number(),
+    to: z.number()
+})
+
+app.post('/api/trades', async (c) => {
+    const body = await c.req.json()
+
+    const dateFilter = dateFilterSchema.safeParse(body)
+
+    if (!dateFilter.success) {
+        return c.json({ error: dateFilter.error })
+    }
+
+    const retrievedTrades = await db
+        .select()
+        .from(trades)
+        .where(and(gte(trades.timestamp, new Date(dateFilter.data.from)), lte(trades.timestamp, new Date(dateFilter.data.to))))
+        .orderBy(desc(trades.timestamp))
+        .limit(1000)
+        .execute()
+
+    return c.json(retrievedTrades)
+})
 
 const PREVIOUS_TRADES_LIMIT = 150000
 
