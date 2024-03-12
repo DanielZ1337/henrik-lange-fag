@@ -1,11 +1,11 @@
-import { Trade, TradeResponse } from '../../common/types.ts';
-import { Hono } from 'hono';
-import { serveStatic } from 'hono/bun'
-import { z } from "zod"
-import { cors } from 'hono/cors';
-import { db } from './db.ts';
-import { trades } from '../../db/src/schema.ts';
-import { and, desc, gte, lte } from 'drizzle-orm';
+import {Trade, TradeResponse} from '../../common/types.ts';
+import {Hono} from 'hono';
+import {serveStatic} from 'hono/bun'
+import {z} from "zod"
+import {cors} from 'hono/cors';
+import {db} from './db.ts';
+import {trades} from '../../db/src/schema.ts';
+import {and, desc, gte, lte} from 'drizzle-orm';
 
 const wss = new WebSocket(`wss://ws.finnhub.io?token=${process.env.STOCK_API_KEY}`)
 
@@ -28,7 +28,7 @@ app.post('/api/trades', async (c) => {
     const dateFilter = dateFilterSchema.safeParse(body)
 
     if (!dateFilter.success) {
-        return c.json({ error: dateFilter.error })
+        return c.json({error: dateFilter.error})
     }
 
     const retrievedTrades = await db

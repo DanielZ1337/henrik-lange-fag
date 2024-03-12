@@ -1,4 +1,4 @@
-import { Trade } from "../../../common/types";
+import {Trade} from "../../../common/types";
 
 export function calculateTicks(domain: [number, number]) {
     const [start, end] = domain;

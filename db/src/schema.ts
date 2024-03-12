@@ -1,5 +1,5 @@
-import { type InferSelectModel } from 'drizzle-orm';
-import { decimal, pgTable, serial, text, timestamp, } from 'drizzle-orm/pg-core';
+import {type InferSelectModel} from 'drizzle-orm';
+import {decimal, pgTable, serial, text, timestamp,} from 'drizzle-orm/pg-core';
 
 export const trades = pgTable('trades', {
     id: serial('id').primaryKey(),

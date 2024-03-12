@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import {useState} from 'react';
 import axios from 'axios';
-import { TradeDatabase } from '../../../db/src/schema';
+import {TradeDatabase} from '../../../db/src/schema';
 
 export function useTradesData() {
     const [tradesByDates, setTradesByDates] = useState<TradeDatabase[]>([]);
@@ -13,5 +13,5 @@ export function useTradesData() {
         setTradesByDates(response.data);
     };
 
-    return { tradesByDates, getTradesFromApiByDate };
+    return {tradesByDates, getTradesFromApiByDate};
 }

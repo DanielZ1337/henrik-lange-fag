@@ -1,4 +1,4 @@
-import { type Config, defineConfig } from 'drizzle-kit'
+import {type Config, defineConfig} from 'drizzle-kit'
 
 if (!process.env.DB_URL) {
     throw new Error("DB_URL not found in .env file");

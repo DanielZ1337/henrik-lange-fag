@@ -1,12 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
-import useWebSocket, { ReadyState } from 'react-use-websocket';
-import { Trade } from '../../../common/types';
+import {useCallback, useEffect, useState} from 'react';
+import useWebSocket, {ReadyState} from 'react-use-websocket';
+import {Trade} from '../../../common/types';
 
 type ProcessDataFunction = (data: Trade[]) => Trade[];
 
 export function useStockWebsocket(socketUrl: string, processDataCallback: ProcessDataFunction, maxHistory: number = 150000) {
     const [messageHistory, setMessageHistory] = useState<Trade[]>([]);
-    const { lastMessage, readyState } = useWebSocket(socketUrl);
+    const {lastMessage, readyState} = useWebSocket(socketUrl);
 
     const handleNewData = useCallback((data: Trade[]) => {
         const newData = processDataCallback(data);
@@ -32,5 +32,5 @@ export function useStockWebsocket(socketUrl: string, processDataCallback: Proces
         [ReadyState.UNINSTANTIATED]: 'Uninstantiated',
     }[readyState];
 
-    return { messageHistory, readyState, connectionStatus };
+    return {messageHistory, readyState, connectionStatus};
 }
