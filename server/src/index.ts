@@ -1,11 +1,11 @@
-import { and, desc, gte, lt, lte } from 'drizzle-orm';
 import { Trade, TradeResponse } from '../../common/types.ts';
-import { db } from './db/client.ts';
-import { TradeDatabase, trades } from './db/schema.ts';
 import { Hono } from 'hono';
 import { serveStatic } from 'hono/bun'
 import { z } from "zod"
 import { cors } from 'hono/cors';
+import { db } from './db.ts';
+import { trades } from '../../db/src/schema.ts';
+import { and, desc, gte, lte } from 'drizzle-orm';
 
 const wss = new WebSocket(`wss://ws.finnhub.io?token=${process.env.STOCK_API_KEY}`)
 
@@ -72,6 +72,8 @@ const server = Bun.serve({
                 }
             })
 
+            // get the previous trades in interval of 1 hour and send it to the client
+
             server.publish("trades", JSON.stringify(previousTradesFormatted, null, 2));
         },
         message(ws, message) {
@@ -95,18 +97,20 @@ wss.onopen = () => {
 
     wss.onmessage = (message: MessageEvent) => {
         const response = JSON.parse(message.data) as TradeResponse
-        if (response.type === 'trade') {
-            server.publish("trades", JSON.stringify(response.data, null, 2));
-            response.data.forEach((trade: Trade) => {
-                void db.insert(trades).values({
-                    // @ts-expect-error
-                    price: trade.p,
-                    symbol: trade.s,
-                    timestamp: new Date(trade.t),
-                    volume: trade.v,
-                }).execute()
-            })
-        }
+
+        if (response.type !== 'trade') return
+
+        server.publish("trades", JSON.stringify(response.data, null, 2));
+
+        response.data.forEach((trade: Trade) => {
+            void db.insert(trades).values({
+                // @ts-expect-error
+                price: trade.p,
+                symbol: trade.s,
+                timestamp: new Date(trade.t),
+                volume: trade.v,
+            }).execute()
+        })
     };
 };
 

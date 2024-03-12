@@ -1,4 +1,4 @@
-import { InferSelectModel } from 'drizzle-orm';
+import { type InferSelectModel } from 'drizzle-orm';
 import { decimal, pgTable, serial, text, timestamp, } from 'drizzle-orm/pg-core';
 
 export const trades = pgTable('trades', {
