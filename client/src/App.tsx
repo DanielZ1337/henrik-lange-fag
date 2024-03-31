@@ -1,13 +1,13 @@
-import {useCallback, useMemo, useState} from 'react';
-import {Trade} from '../../common/types';
-import {TradesList} from './components/trades-list';
-import {DateRangeSelector} from './components/data-range-selector';
-import {PriceChangeCard} from './components/price-change-card';
-import {PriceChart} from './components/price-chart';
-import {LastPrice} from './components/last-price';
-import {useTradesData} from './hooks/useTradesData'
-import {useStockWebsocket} from './hooks/useStockWebsocket';
-import {calculateTicks, sortTradesInterval} from './lib/utils';
+import { useCallback, useMemo, useState } from 'react';
+import { Trade } from '../../common/types';
+import { TradesList } from './components/trades-list';
+import { DateRangeSelector } from './components/data-range-selector';
+import { PriceChangeCard } from './components/price-change-card';
+import { PriceChart } from './components/price-chart';
+import { LastPrice } from './components/last-price';
+import { useTradesData } from './hooks/useTradesData'
+import { useStockWebsocket } from './hooks/useStockWebsocket';
+import { calculateTicks, sortTradesInterval } from './lib/utils';
 
 const DAY_IN_MS = 1000 * 60 * 60 * 24;
 
@@ -15,14 +15,14 @@ const socketUrl = `ws://localhost:3001`;
 
 export default function App() {
     const [dates, setDates] = useState<[Date, Date]>([new Date(Date.now() - DAY_IN_MS), new Date()]);
-    const {tradesByDates, getTradesFromApiByDate} = useTradesData();
-    const {messageHistory, connectionStatus} = useStockWebsocket(socketUrl, sortTradesInterval);
+    const { tradesByDates, getTradesFromApiByDate } = useTradesData();
+    const { messageHistory, connectionStatus } = useStockWebsocket(socketUrl, sortTradesInterval);
 
     const getTradesFromApi = () => getTradesFromApiByDate(dates[0], dates[1]);
 
     const sortedMessageHistory = useMemo(() => messageHistory.sort((a, b) => a.t - b.t), [messageHistory]);
 
-    const {minPrice, maxPrice, startTime, endTime} = useMemo(() => {
+    const { minPrice, maxPrice, startTime, endTime } = useMemo(() => {
         const prices = sortedMessageHistory.map((trade: Trade) => trade.p);
         const times = sortedMessageHistory.map((trade: Trade) => trade.t);
         return {
@@ -62,6 +62,9 @@ export default function App() {
     // show trades based on the last trade of every minute
     const tradesForChart = useMemo(() => sortTradesInterval(sortedMessageHistory), [sortedMessageHistory]);
 
+    // @ts-expect-error It's safe but has wrong type, should of course be fixed
+    const symbol = tradesForChart[0]?.symbol || 'Loading...';
+
     return (
         <div
             className='flex flex-col items-center justify-center min-h-screen bg-zinc-900 text-white font-mono p-10 w-[99vw]  overflow-hidden max-w-[99vw] '>
@@ -69,7 +72,7 @@ export default function App() {
                 <span className={`text-3xl ${connectionStatus === 'Open' ? 'text-green-200' : 'text-red-200'}`}>
                     Websocket: {connectionStatus}
                 </span>
-                <LastPrice lastPrice={lastPrice} secondLastPrice={secondLastPrice}/>
+                <LastPrice symbol={symbol} lastPrice={lastPrice} secondLastPrice={secondLastPrice} />
                 <PriceChart
                     data={tradesForChart}
                     xDomain={xDomain}
@@ -104,7 +107,7 @@ export default function App() {
                     Get trades from API
                 </button>
             </div>
-            <TradesList trades={tradesByDates}/>
+            <TradesList trades={tradesByDates} />
         </div>
     );
 }
