@@ -1,11 +1,11 @@
-import {Trade, TradeResponse} from '../../common/types.ts';
-import {Hono} from 'hono';
-import {serveStatic} from 'hono/bun'
-import {z} from "zod"
-import {cors} from 'hono/cors';
-import {db} from './db.ts';
-import {trades} from '../../db/src/schema.ts';
-import {and, desc, gte, lte} from 'drizzle-orm';
+import { Trade, TradeResponse } from '../../common/types.ts';
+import { Hono } from 'hono';
+import { serveStatic } from 'hono/bun'
+import { z } from "zod"
+import { cors } from 'hono/cors';
+import { db } from './db.ts';
+import { trades } from '../../db/src/schema.ts';
+import { and, desc, gte, lte } from 'drizzle-orm';
 
 const wss = new WebSocket(`wss://ws.finnhub.io?token=${process.env.STOCK_API_KEY}`)
 
@@ -23,12 +23,16 @@ const dateFilterSchema = z.object({
 })
 
 app.post('/api/trades', async (c) => {
-    const body = await c.req.json()
+    const body = await c.req.json().catch(() => null)
+
+    if (!body) {
+        return c.json({ error: 'No body sent' }, 400)
+    }
 
     const dateFilter = dateFilterSchema.safeParse(body)
 
     if (!dateFilter.success) {
-        return c.json({error: dateFilter.error})
+        return c.json({ error: dateFilter.error }, 400)
     }
 
     const retrievedTrades = await db
@@ -42,7 +46,7 @@ app.post('/api/trades', async (c) => {
     return c.json(retrievedTrades)
 })
 
-const PREVIOUS_TRADES_LIMIT = 150000
+export const PREVIOUS_TRADES_LIMIT = 150000
 
 const server = Bun.serve({
     fetch(req, server) {
