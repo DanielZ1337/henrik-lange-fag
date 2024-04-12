@@ -38,8 +38,8 @@ app.post('/api/trades', async (c) => {
     const retrievedTrades = await db
         .select()
         .from(trades)
-        .where(and(gte(trades.timestamp, new Date(dateFilter.data.from)), lte(trades.timestamp, new Date(dateFilter.data.to))))
-        .orderBy(desc(trades.timestamp))
+        .where(and(gte(trades.t, new Date(dateFilter.data.from)), lte(trades.t, new Date(dateFilter.data.to))))
+        .orderBy(desc(trades.t))
         .limit(1000)
         .execute()
 
@@ -63,16 +63,16 @@ const server = Bun.serve({
             ws.subscribe("trades");
             const previousTrades = await db.select()
                 .from(trades)
-                .orderBy(desc(trades.timestamp))
+                .orderBy(desc(trades.t))
                 .limit(PREVIOUS_TRADES_LIMIT)
                 .execute();
 
             let previousTradesFormatted = previousTrades.map((trade) => {
                 return {
                     ...trade,
-                    t: trade.timestamp.getTime(),
-                    p: trade.price,
-                    v: trade.volume
+                    t: trade.t.getTime(),
+                    p: trade.p,
+                    v: trade.v
                 }
             })
 
@@ -109,10 +109,10 @@ wss.onopen = () => {
         response.data.forEach((trade: Trade) => {
             void db.insert(trades).values({
                 // @ts-expect-error
-                price: trade.p,
-                symbol: trade.s,
-                timestamp: new Date(trade.t),
-                volume: trade.v,
+                p: trade.p,
+                s: trade.s,
+                t: new Date(trade.t),
+                v: trade.v,
             }).execute()
         })
     };

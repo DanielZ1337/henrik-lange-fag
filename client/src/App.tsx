@@ -62,8 +62,7 @@ export default function App() {
     // show trades based on the last trade of every minute
     const tradesForChart = useMemo(() => sortTradesInterval(sortedMessageHistory), [sortedMessageHistory]);
 
-    // @ts-expect-error It's safe but has wrong type, should of course be fixed
-    const symbol = tradesForChart[0]?.symbol || 'Loading...';
+    const symbol = tradesForChart[0]?.s || 'Loading...';
 
     return (
         <div
