@@ -11,8 +11,7 @@ export function useStockWebsocket(socketUrl: string, processDataCallback: Proces
     const handleNewData = useCallback((data: Trade[]) => {
         const newData = processDataCallback(data);
         setMessageHistory(prev => {
-            const updatedHistory = [...prev, ...newData].slice(-maxHistory);
-            return updatedHistory;
+            return [...prev, ...newData].slice(-maxHistory);
         });
     }, [processDataCallback, maxHistory]);
 
