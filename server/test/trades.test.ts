@@ -201,11 +201,8 @@ describe('WebSocket Tests for Trades On First Load', () => {
             expect(trade).toHaveProperty('p');
             expect(trade).toHaveProperty('v');
             expect(trade).toHaveProperty('s');
-            expect(trade).toHaveProperty('t');
-            expect(trade).toHaveProperty('p');
-            expect(trade).toHaveProperty('v');
-            expect(trade).toHaveProperty('id');
             expect(trade).toHaveProperty('c');
+            expect(trade).toHaveProperty('id');
             expect(trade).toHaveProperty('createdAt');
             expect(trade).toHaveProperty('updatedAt');
         });
