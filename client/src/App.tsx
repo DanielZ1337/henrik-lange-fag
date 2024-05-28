@@ -48,11 +48,9 @@ export default function App() {
 	const priceChangeSinceXPercentage = useCallback(
 		(lastTradePrice: number, xMinutesAgo: number) => {
 			const xMinutesAgoTimestamp = Date.now() - xMinutesAgo * 60 * 1000
-			const xMinutesAgoTrade = sortedMessageHistory.find((trade) => trade.t >= xMinutesAgoTimestamp)
+			const xMinutesAgoTrade = sortedMessageHistory.find((trade) => trade.t >= xMinutesAgoTimestamp) ?? 0
 
-			if (!xMinutesAgoTrade) {
-				return 0
-			}
+			if (!xMinutesAgoTrade) return 0
 
 			return (lastTradePrice - xMinutesAgoTrade?.p) / xMinutesAgoTrade?.p
 		},
@@ -78,6 +76,8 @@ export default function App() {
 	const tradesForChart = useMemo(() => sortTradesInterval(sortedMessageHistory), [sortedMessageHistory])
 
 	const symbol = tradesForChart[0]?.s || 'Loading...'
+
+	if (!lastPrice) return <div className='spinner fixed inset-0 m-auto' />
 
 	return (
 		<div className='flex flex-col items-center justify-center min-h-screen bg-zinc-900 text-white font-mono p-10 w-[99vw]  overflow-hidden max-w-[99vw] '>
