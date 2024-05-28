@@ -12,8 +12,8 @@
 		"noEmit": true,
 		"baseUrl": ".",
 		"paths": {
-			"@common/*": ["../common/src/*"],
-			"@db/*": ["../db/src/*"]
+			"@common/*": ["./common/src/*"],
+			"@db/*": ["./db/src/*"]
 		}
 	}
 }

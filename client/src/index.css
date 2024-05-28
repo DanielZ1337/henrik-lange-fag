@@ -61,27 +61,6 @@ button:focus-visible {
     outline: 4px auto -webkit-focus-ring-color;
 }
 
-button {
-    border-radius: 8px;
-    border: 1px solid transparent;
-    padding: 0.6em 1.2em;
-    font-size: 1em;
-    font-weight: 500;
-    font-family: inherit;
-    background-color: #1a1a1a;
-    cursor: pointer;
-    transition: border-color 0.25s;
-}
-
-button:hover {
-    border-color: #646cff;
-}
-
-button:focus,
-button:focus-visible {
-    outline: 4px auto -webkit-focus-ring-color;
-}
-
 input {
     border-radius: 8px;
     border: 1px solid #1a1a1a;
@@ -116,5 +95,25 @@ input:focus-visible {
 
     button {
         background-color: #f9f9f9;
+    }
+}
+
+.spinner {
+    display: inline-block;
+    width: 3.5em;
+    height: 3.5em;
+    border: 0.25em solid #f3f3f3;
+    border-radius: 50%;
+    border-top-color: #747bff;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
     }
 }

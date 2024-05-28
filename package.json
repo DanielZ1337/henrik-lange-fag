@@ -1,0 +1,22 @@
+{
+  "name": "henrik-lange-fag",
+  "version": "1.0.0",
+  "main": "index.js",
+  "workspaces": [
+    "client",
+    "common",
+    "db",
+    "server"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "trustedDependencies": [
+    "es5-ext",
+    "xycolors"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+	"compilerOptions": {
+		"strict": true,
+		"allowJs": true,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+		"noEmit": true,
+		"incremental": true,
+		"esModuleInterop": true,
+		"module": "esnext",
+		"isolatedModules": true,
+		"jsx": "preserve",
+		"baseUrl": ".",
+		"paths": {
+			"@db/*": ["../db/src/*"],
+			"@server/*": ["../server/src/*"]
+		}
+	}
+}
