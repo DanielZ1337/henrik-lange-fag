@@ -23,8 +23,8 @@ export default function App() {
 	const sortedMessageHistory = useMemo(() => messageHistory.toSorted((a, b) => a.t - b.t), [messageHistory])
 
 	const { minPrice, maxPrice, startTime, endTime } = useMemo(() => {
-		const prices = sortedMessageHistory.map((trade: Trade) => trade.p)
-		const times = sortedMessageHistory.map((trade: Trade) => trade.t)
+		const prices = sortedMessageHistory.map((trade) => trade.p)
+		const times = sortedMessageHistory.map((trade) => trade.t)
 		return {
 			minPrice: Math.min(...prices) * 0.9995,
 			maxPrice: Math.max(...prices) * 1.0005,
