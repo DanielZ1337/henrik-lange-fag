@@ -1,10 +1,8 @@
 {
-  "id": "23fb311d-b1f6-4f11-85f2-fda3561a8fe5",
-  "prevId": "00000000-0000-0000-0000-000000000000",
-  "version": "5",
-  "dialect": "pg",
+  "version": "6",
+  "dialect": "postgresql",
   "tables": {
-    "trades": {
+    "public.trades": {
       "name": "trades",
       "schema": "",
       "columns": {
@@ -68,8 +66,10 @@
   "enums": {},
   "schemas": {},
   "_meta": {
-    "columns": {},
     "schemas": {},
-    "tables": {}
-  }
+    "tables": {},
+    "columns": {}
+  },
+  "id": "23fb311d-b1f6-4f11-85f2-fda3561a8fe5",
+  "prevId": "00000000-0000-0000-0000-000000000000"
 }
