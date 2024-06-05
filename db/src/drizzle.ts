@@ -7,27 +7,15 @@ class Database {
 	private readonly client: NodePgDatabase<typeof schema>
 
 	private constructor() {
-		const { DB_URL, DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME } = process.env
+		const { DB_URL } = process.env
 
-		if (DB_URL) {
-			const client = new Client({ connectionString: DB_URL })
-			client.connect()
-			this.client = drizzle(client, { schema })
-		} else {
-			if (!DB_HOST || !DB_PORT || !DB_USER || !DB_PASSWORD || !DB_NAME) {
-				throw new Error('Missing environment variables for database connection')
-			}
-			const client = new Client({
-				host: DB_HOST,
-				port: Number(DB_PORT),
-				user: DB_USER,
-				password: DB_PASSWORD,
-				database: DB_NAME,
-			})
-			client.connect()
-
-			this.client = drizzle(client, { schema })
+		if (!DB_URL) {
+			throw new Error('Missing environment variables for database connection')
 		}
+
+		const client = new Client({ connectionString: DB_URL })
+		client.connect()
+		this.client = drizzle(client, { schema })
 	}
 
 	public static getInstance(): Database {
@@ -38,7 +26,7 @@ class Database {
 	}
 
 	public getDb(): NodePgDatabase<typeof schema> {
-		return Database.instance.client
+		return this.client
 	}
 }
 
