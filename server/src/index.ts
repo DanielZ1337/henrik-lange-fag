@@ -80,8 +80,7 @@ const server = Bun.serve({
 			})
 
 			// get the previous trades in interval of 1 hour and send it to the client
-
-			server.publish('trades', JSON.stringify(previousTradesFormatted, null, 2))
+			ws.send(JSON.stringify(previousTradesFormatted))
 		},
 		message(ws, message) {
 			ws.ping()
@@ -109,7 +108,7 @@ wss.onopen = () => {
 
 		if (response.type !== 'trade') return
 
-		server.publish('trades', JSON.stringify(response.data, null, 2))
+		server.publish('trades', JSON.stringify(response.data))
 
 		response.data.forEach((trade: Trade) => {
 			db.insert(trades)
