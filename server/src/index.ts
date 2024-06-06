@@ -3,7 +3,6 @@ import { Hono } from 'hono'
 import { serveStatic } from 'hono/bun'
 import { z } from 'zod'
 import { cors } from 'hono/cors'
-import { hc } from 'hono/client'
 import { zValidator } from '@hono/zod-validator'
 import { db } from '@db/drizzle.ts'
 import { trades } from '@db/schema.ts'
@@ -103,7 +102,7 @@ wss.onopen = () => {
 		})
 	)
 
-	wss.onmessage = (message: MessageEvent) => {
+	wss.onmessage = (message) => {
 		const response = JSON.parse(message.data) as TradeResponse
 
 		if (response.type !== 'trade') return
