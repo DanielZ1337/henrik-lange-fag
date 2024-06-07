@@ -1,12 +1,16 @@
-import { Trade, TradeResponse } from '@common/types.ts'
+import { TradeResponse } from '@common/types.ts'
 import { Hono } from 'hono'
-import { serveStatic } from 'hono/bun'
+import { serve } from '@hono/node-server'
+import { serveStatic } from '@hono/node-server/serve-static'
 import { z } from 'zod'
 import { cors } from 'hono/cors'
 import { zValidator } from '@hono/zod-validator'
 import { db } from '@db/drizzle.ts'
 import { trades } from '@db/schema.ts'
 import { and, desc, gte, lte } from 'drizzle-orm'
+import { config } from 'dotenv'
+import { WebSocket, WebSocketServer } from 'ws'
+config()
 
 const wss = new WebSocket(`wss://ws.finnhub.io?token=${process.env.STOCK_API_KEY}`)
 
@@ -49,47 +53,25 @@ const app = new Hono()
 
 export const PREVIOUS_TRADES_LIMIT = 150000
 
-const server = Bun.serve({
-	fetch(req, server) {
-		const success = server.upgrade(req)
-		if (success) {
-			// Bun automatically returns a 101 Switching Protocols
-			// if the upgrade succeeds
-			return undefined
-		}
-	},
-	websocket: {
-		// this is called when a message is received
-		async open(ws) {
-			ws.subscribe('trades')
-			const previousTrades = await db
-				.select()
-				.from(trades)
-				.orderBy(desc(trades.t))
-				.limit(PREVIOUS_TRADES_LIMIT)
-				.execute()
-
-			let previousTradesFormatted = previousTrades.map((trade) => {
-				return {
-					...trade,
-					t: trade.t.getTime(),
-					p: trade.p,
-					v: trade.v,
-				}
-			})
-
-			// get the previous trades in interval of 1 hour and send it to the client
-			ws.send(JSON.stringify(previousTradesFormatted))
-		},
-		message(ws, message) {
-			ws.ping()
-		},
-		close(ws) {
-			ws.unsubscribe('trades')
-		},
-	},
+const server = new WebSocketServer({
 	port: 3001,
-	hostname: 'localhost',
+	host: 'localhost',
+})
+
+server.on('connection', async (ws) => {
+	const previousTrades = await db.select().from(trades).orderBy(desc(trades.t)).limit(PREVIOUS_TRADES_LIMIT).execute()
+
+	let previousTradesFormatted = previousTrades.map((trade) => {
+		return {
+			...trade,
+			t: trade.t.getTime(),
+			p: trade.p,
+			v: trade.v,
+		}
+	})
+
+	// get the previous trades in interval of 1 hour and send it to the client
+	ws.send(JSON.stringify(previousTradesFormatted))
 })
 
 wss.onopen = () => {
@@ -103,13 +85,14 @@ wss.onopen = () => {
 	)
 
 	wss.onmessage = (message) => {
-		const response = JSON.parse(message.data) as TradeResponse
+		const data = message.data as string
+		const response = JSON.parse(data) as TradeResponse
 
 		if (response.type !== 'trade') return
 
-		server.publish('trades', JSON.stringify(response.data))
+		server.clients.forEach((client) => client.send(JSON.stringify(response.data)))
 
-		response.data.forEach((trade: Trade) => {
+		response.data.forEach((trade) => {
 			db.insert(trades)
 				.values({
 					// @ts-expect-error
@@ -123,6 +106,6 @@ wss.onopen = () => {
 	}
 }
 
-console.log(`Listening on ${server.hostname}:${server.port}`)
+console.log(`Listening on ${server.options.host}:${server.options.port}`)
 
-export default app
+serve(app)

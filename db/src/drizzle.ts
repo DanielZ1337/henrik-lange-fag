@@ -1,6 +1,8 @@
 import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres'
-import { Client } from 'pg'
+import pg from 'pg'
 import * as schema from './schema.ts'
+import { config } from 'dotenv'
+config()
 
 class Database {
 	private static instance: Database
@@ -13,7 +15,7 @@ class Database {
 			throw new Error('Missing environment variables for database connection')
 		}
 
-		const client = new Client({ connectionString: DB_URL })
+		const client = new pg.Client({ connectionString: DB_URL })
 		client.connect()
 		this.client = drizzle(client, { schema })
 	}
