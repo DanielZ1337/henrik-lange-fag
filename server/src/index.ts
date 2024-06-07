@@ -65,8 +65,6 @@ server.on('connection', async (ws) => {
 		return {
 			...trade,
 			t: trade.t.getTime(),
-			p: trade.p,
-			v: trade.v,
 		}
 	})
 
